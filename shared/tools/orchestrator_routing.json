@@ -1,0 +1,73 @@
+{
+  "orchestrator": {
+    "name": "orchestrator",
+    "model": "anthropic/claude-sonnet-4-6",
+    "enabled": true
+  },
+  "routing": {
+    "tui": {
+      "channel": "tui",
+      "primaryAgent": "orchestrator",
+      "fallbackAgent": "main",
+      "priority": 10
+    },
+    "discord": {
+      "channel": "discord",
+      "primaryAgent": "orchestrator",
+      "fallbackAgent": "main",
+      "priority": 20
+    }
+  },
+  "agents": {
+    "parlei_speak_er": {
+      "enabled": true,
+      "required": true,
+      "model": "anthropic/claude-sonnet-4.6"
+    },
+    "parlei_plan_er": {
+      "enabled": true,
+      "required": false,
+      "model": "anthropic/claude-sonnet-4.6"
+    },
+    "parlei_task_er": {
+      "enabled": true,
+      "required": false,
+      "model": "anthropic/claude-sonnet-4.6"
+    }
+  },
+  "routes": [
+    {
+      "from": "tui",
+      "to": "parlei_speak_er",
+      "condition": "message_type == 'simple_request'"
+    },
+    {
+      "from": "discord",
+      "to": "parlei_speak_er",
+      "condition": "message_type == 'simple_request' OR (message_type == 'thread_reply' AND context == 'parlei')"
+    },
+    {
+      "from": "tui",
+      "to": "parlei_plan_er",
+      "condition": "message_type == 'complex_request' AND requires_planning == true"
+    },
+    {
+      "from": "discord",
+      "to": "parlei_plan_er",
+      "condition": "message_type == 'complex_request' AND requires_planning == true"
+    },
+    {
+      "from": "any",
+      "to": "parlei_task_er",
+      "condition": "state == 'planning_complete' AND requires_execution == true"
+    }
+  ],
+  "lateral_grants": {
+    "allowed_transitions": [
+      {"from": "parlei_speak_er", "to": "parlei_plan_er"},
+      {"from": "parlei_speak_er", "to": "parlei_task_er"},
+      {"from": "parlei_plan_er", "to": "parlei_task_er"}
+    ],
+    "default_duration": "single_session"
+  }
+}
