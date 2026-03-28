@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Shared Discord post formatter (weekender event style)."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Iterable, Sequence
+
+
+DEFAULT_WINDOW_HOURS = 72
+
+
+def parse_timestamp(value: str | None) -> datetime | None:
+    if value is None:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        raise SystemExit(f"Invalid timestamp: {value}")
+
+
+def build_event_embed(ev: dict[str, Any]) -> dict[str, Any]:
+    start_dt = parse_timestamp(ev.get("start_dt"))
+    end_dt = parse_timestamp(ev.get("end_dt"))
+
+    start_fmt = start_dt.strftime("%a %b %-d, %-I:%M %p") if start_dt else "TBD"
+    end_fmt = end_dt.strftime("%a %b %-d, %-I:%M %p") if end_dt else "TBD"
+
+    desc_lines = [
+        f"📍 **Location:** {ev.get('location') or 'Location TBD'}",
+        f"🕐 **When:** {start_fmt} – {end_fmt}",
+        f"💵 **Cost:** {ev.get('cost', 'Free')}",
+        "",
+        ev.get("description") or "No description available.",
+    ]
+
+    embed: dict[str, Any] = {
+        "title": (ev.get("title") or "Untitled Event")[:250],
+        "description": "\n".join(desc_lines)[:3500],
+    }
+
+    if url := ev.get("url"):
+        embed["url"] = url
+    if ev.get("image"):
+        embed["image"] = {"url": ev["image"]}
+
+    return embed
+
+
+def group_by_day(events: Sequence[dict[str, Any]]) -> dict[datetime.date, list[dict[str, Any]]]:
+    grouping: dict[datetime.date, list[dict[str, Any]]] = {}
+    for ev in events:
+        start_dt = parse_timestamp(ev.get("start_dt"))
+        day = start_dt.date() if start_dt else datetime.utcnow().date()
+        grouping.setdefault(day, []).append(ev)
+    for day in grouping:
+        grouping[day].sort(key=lambda e: parse_timestamp(e.get("start_dt")) or datetime.min)
+    return grouping
+
+
+def format_header(start: datetime, end: datetime, total: int, window_hours: int) -> str:
+    if window_hours and window_hours > 0:
+        return (
+            f"📅 **Upcoming Events — Next {window_hours} Hours**\n"
+            f"Window: {start.strftime('%a %b %-d, %-I:%M %p')} → {end.strftime('%a %b %-d, %-I:%M %p')}\n"
+            f"Curated for St. Petersburg & Gulfport 🌊\n"
+            f"🧾 Showing top {total} events (throttled)."
+        )
+    return (
+        f"📅 **Weekend Events — {start.strftime('%B %-d')} through {end.strftime('%B %-d, %Y')}**\n"
+        f"Curated for St. Petersburg & Gulfport 🌊\n"
+        f"🧾 Showing top {total} events (throttled)."
+    )
+
+
+def load_events(path: Path | None) -> list[dict[str, Any]]:
+    raw: str
+    if path is None:
+        raw = sys.stdin.read()
+    else:
+        raw = path.read_text()
+    try:
+        data = json.loads(raw or "[]")
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid JSON: {exc}")
+    if isinstance(data, dict) and "events" in data:
+        data = data["events"]
+    if not isinstance(data, list):
+        raise SystemExit("Expected a list of events")
+    return data
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Shared Weekender event formatting helper.")
+    parser.add_argument("--events-file", type=Path, help="JSON file with event list (default=stdin)")
+    parser.add_argument(
+        "--window-hours",
+        type=int,
+        default=0,
+        help="If >0, render the upcoming events header and use a rolling window.",
+    )
+    parser.add_argument("--window-start", type=str, help="ISO start timestamp (overrides window hours)")
+    parser.add_argument("--window-end", type=str, help="ISO end timestamp (overrides window hours)")
+
+    args = parser.parse_args()
+
+    events = load_events(args.events_file)
+    if not events:
+        print("No events provided.")
+        return
+
+    window_start = parse_timestamp(args.window_start) if args.window_start else None
+    window_end = parse_timestamp(args.window_end) if args.window_end else None
+
+    if not window_start:
+        window_start = datetime.utcnow()
+    if not window_end:
+        if args.window_hours and args.window_hours > 0:
+            window_end = window_start + timedelta(hours=args.window_hours)
+        else:
+            window_end = window_start + timedelta(hours=DEFAULT_WINDOW_HOURS)
+
+    header = format_header(window_start, window_end, len(events), args.window_hours)
+    grouped = group_by_day(events)
+
+    print(header)
+    for day in sorted(grouped):
+        print(f"**── {day.strftime('%A, %B %-d')} ──**")
+        for ev in grouped[day]:
+            if ev.get("interest_match"):
+                print("⭐ Interest Match")
+            embed = build_event_embed(ev)
+            print(json.dumps(embed, ensure_ascii=False))
+        print()
+
+
+if __name__ == "__main__":
+    main()

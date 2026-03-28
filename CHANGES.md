@@ -421,3 +421,9 @@ For integration issues:
 **Created:** 2026-03-27
 
 🎉 **Parlei now works with OpenClaw's multi-agent framework!** 🦉
+## Additional Tools
+- `shared-discord-post-format`
+  - Mirrors the event header/day formatting used by `scripts/weekender.py`
+  - Builds the same native embed payloads (`build_event_embed`) and headers (`Weekend Events` / `Upcoming Events`)
+  - Accepts JSON event lists via stdin or `--events-file`
+  - Useful for debugging or copying the exact Discord format outside the cron job
