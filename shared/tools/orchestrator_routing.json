@@ -1,7 +1,7 @@
 {
   "orchestrator": {
     "name": "orchestrator",
-    "model": "anthropic/claude-sonnet-4-6",
+    "model": "default",
     "enabled": true
   },
   "routing": {
@@ -22,17 +22,31 @@
     "parlei_speak_er": {
       "enabled": true,
       "required": true,
-      "model": "anthropic/claude-sonnet-4.6"
+      "model": "default"
     },
     "parlei_plan_er": {
       "enabled": true,
       "required": false,
-      "model": "anthropic/claude-sonnet-4.6"
+      "model": "default"
     },
     "parlei_task_er": {
       "enabled": true,
       "required": false,
-      "model": "anthropic/claude-sonnet-4.6"
+      "model": "default"
+    }
+  },
+  "model_override": {
+    "enabled": false,
+    "strategy": "dynamic",
+    "rules": {
+      "fast_channel": {
+        "channel": "tui",
+        "default_model": "anthropic/claude-3.5-sonnet"
+      },
+      "complex_tasks": {
+        "task_type": "complex",
+        "default_model": "anthropic/claude-3-5-opus"
+      }
     }
   },
   "routes": [
@@ -64,9 +78,18 @@
   ],
   "lateral_grants": {
     "allowed_transitions": [
-      {"from": "parlei_speak_er", "to": "parlei_plan_er"},
-      {"from": "parlei_speak_er", "to": "parlei_task_er"},
-      {"from": "parlei_plan_er", "to": "parlei_task_er"}
+      {
+        "from": "parlei_speak_er",
+        "to": "parlei_plan_er"
+      },
+      {
+        "from": "parlei_speak_er",
+        "to": "parlei_task_er"
+      },
+      {
+        "from": "parlei_plan_er",
+        "to": "parlei_task_er"
+      }
     ],
     "default_duration": "single_session"
   }
