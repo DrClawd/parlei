@@ -8,13 +8,13 @@
     "tui": {
       "channel": "tui",
       "primaryAgent": "orchestrator",
-      "fallbackAgent": "main",
+      "fallbackAgent": "orchestrator",
       "priority": 10
     },
     "discord": {
       "channel": "discord",
       "primaryAgent": "orchestrator",
-      "fallbackAgent": "main",
+      "fallbackAgent": "orchestrator",
       "priority": 20
     }
   },

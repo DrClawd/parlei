@@ -24,12 +24,12 @@ All agent logic, memory, personalities, and tools live in `../shared/` and are a
 
 ## Entry Point
 
-All interaction begins with **Speak-er**, but **via the Orchestrator** when coming from TUI or Discord.
+All interaction begins with the **Orchestrator (now Speak-er)** — it still routes tasks but also carries Speak-er’s identity when serving the TUI or Discord.
 
 ### Main Session (Direct Chat)
 
-- The Spirit of the Forest speaks directly to Speak-er
-- No routing needed — this is the main entry point
+- The Spirit of the Forest speaks directly to the Orchestrator/Speak-er hybrid
+- No additional routing needed — this is the main entry point
 
 ### TUI Channel
 

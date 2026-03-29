@@ -51,13 +51,14 @@ Parlei is now integrated with OpenClaw's built-in multi-agent capabilities, prov
 
 ### 1. Orchestrator Agent (`shared/orchestrator/orchestrator.md`)
 
-**Role:** Dedicated orchestrator for Parlei within OpenClaw's multi-agent framework.
+**Role:** Dedicated orchestrator for Parlei within OpenClaw's multi-agent framework. When acting as the user-facing entry point, it inherits Speak-er’s persona so every response feels like Speak-er without needing a separate agent.
 
 **Responsibilities:**
 - Route tasks between TUI and Discord
 - Assess task complexity and routing
 - Coordinate multi-agent delegation
 - Manage lateral communication
+- Present Speak-er’s tone/personality during channel responses
 
 **Default Model:** Claude Sonnet 4.6
 

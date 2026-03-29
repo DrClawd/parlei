@@ -427,3 +427,13 @@ For integration issues:
   - Builds the same native embed payloads (`build_event_embed`) and headers (`Weekend Events` / `Upcoming Events`)
   - Accepts JSON event lists via stdin or `--events-file`
   - Useful for debugging or copying the exact Discord format outside the cron job
+
+### 3. Discord Routing Default
+- `shared/tools/orchestrator_routing.json`
+  - Set both the TUI and Discord fallback agents to the orchestrator so every Discord channel defaults to the orchestrator rather than the legacy `main` agent
+
+### 4. Speak-er/Orchestrator Merge
+- `shared/orchestrator/orchestrator.md`, `bootstraps/OPENCLAW.md`, `docs/openclaw-integration.md`
+  - Documented that the orchestrator now *is* Speak-er when it is the user-facing entry point
+  - Added instructions so the orchestrator loads Speak-er’s bootstrap, personality, and memory context for direct channel replies
+  - Clarified the main entry point terminology to reflect a hybrid orchestrator/Speak-er agent
