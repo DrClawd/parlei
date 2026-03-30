@@ -437,3 +437,9 @@ For integration issues:
   - Documented that the orchestrator now *is* Speak-er when it is the user-facing entry point
   - Added instructions so the orchestrator loads Speak-er’s bootstrap, personality, and memory context for direct channel replies
   - Clarified the main entry point terminology to reflect a hybrid orchestrator/Speak-er agent
+
+## 5. Post Helpers
+- `posting_templates.py`
+  - Added `make_event_embed` (and alias `build_event_embed`) so the Weekender script can call it, keeping the same fields (location, window, cost, description, image) as before
+  - Retained the existing movie helper via `make_movie_embed` and exported both names for compatibility
+- `scripts/weekender.py` now imports `make_event_embed` instead of defining its own helper, keeping the weekender formatting functions centralized
